@@ -1,0 +1,42 @@
+name: health_ai
+description: An AI-powered health companion application.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # Backend - Supabase
+  supabase_flutter: ^2.3.4
+
+  # Animations
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Local Storage
+  shared_preferences: ^2.3.0
+
+  # Utilities
+  equatable: ^2.0.5
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
