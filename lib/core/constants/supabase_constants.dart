@@ -7,6 +7,7 @@ class SupabaseConstants {
   static const String supabaseAnonKey = 'sb_publishable_T8BVbmiZb6IO6t1WX16dhQ_T4YNrofk';
 
   // ─── Tables ──────────────────────────────────────────
+  static const String usersTable = 'users';
   static const String profilesTable = 'profiles';
   static const String healthRecordsTable = 'health_records';
   static const String symptomsTable = 'symptoms';

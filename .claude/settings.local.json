@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(flutter devices *)",
-      "Bash(flutter run *)"
+      "Bash(flutter run *)",
+      "Bash(dart analyze *)",
+      "Bash(wmic logicaldisk *)",
+      "Bash(flutter clean *)"
     ]
   }
 }

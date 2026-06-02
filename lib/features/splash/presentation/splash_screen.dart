@@ -9,6 +9,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/health_ai_logo.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -41,14 +42,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _navigate() async {
     if (!mounted) return;
 
+    // Check Supabase session
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      context.go(AppRoutes.home);
+      if (mounted) context.go(AppRoutes.home);
       return;
     }
 
+    // Check onboarding status
     final prefs = await SharedPreferences.getInstance();
-    final onboardingSeen = prefs.getBool(AppConstants.onboardingSeenKey) ?? false;
+    final onboardingSeen =
+        prefs.getBool(AppConstants.onboardingSeenKey) ?? false;
 
     if (!mounted) return;
     if (onboardingSeen) {
@@ -94,7 +98,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildLogo() {
-    return HealthAILogo(size: 88, bgColor: AppColors.primary, iconColor: Colors.white)
+    return HealthAILogo(
+            size: 88, bgColor: AppColors.primary, iconColor: Colors.white)
         .animate()
         .scale(
           begin: const Offset(0.5, 0.5),
@@ -115,10 +120,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         color: Colors.white,
         letterSpacing: -1.5,
       ),
-    )
-        .animate(delay: 300.ms)
-        .fadeIn(duration: 600.ms)
-        .slideY(begin: 0.3, end: 0, duration: 600.ms, curve: Curves.easeOutCubic);
+    ).animate(delay: 300.ms).fadeIn(duration: 600.ms).slideY(
+        begin: 0.3, end: 0, duration: 600.ms, curve: Curves.easeOutCubic);
   }
 
   Widget _buildTagline() {
@@ -133,10 +136,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         letterSpacing: 0.3,
         height: 1.5,
       ),
-    )
-        .animate(delay: 500.ms)
-        .fadeIn(duration: 700.ms)
-        .slideY(begin: 0.3, end: 0, duration: 600.ms, curve: Curves.easeOutCubic);
+    ).animate(delay: 500.ms).fadeIn(duration: 700.ms).slideY(
+        begin: 0.3, end: 0, duration: 600.ms, curve: Curves.easeOutCubic);
   }
 
   Widget _buildBottomIndicator() {
@@ -149,9 +150,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           width: i == 1 ? 28 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: i == 1
-                ? AppColors.primary
-                : Colors.white.withOpacity(0.25),
+            color: i == 1 ? AppColors.primary : Colors.white.withOpacity(0.25),
             borderRadius: BorderRadius.circular(4),
           ),
         )
