@@ -103,7 +103,25 @@ class CheckerFormNotifier extends StateNotifier<CheckerForm> {
   void setDuration(String d) => state = state.copyWith(duration: d);
   void setSeverity(int s) => state = state.copyWith(severity: s);
   void setStep(int s) => state = state.copyWith(currentStep: s);
+
+  // Full reset (clears everything including personal data).
   void reset() => state = const CheckerForm();
+
+  // Fresh-check reset: clears symptoms/duration/severity/step but keeps
+  // personal data the user already typed so they don't re-enter it.
+  void resetForNewCheck() {
+    state = CheckerForm(
+      age: state.age,
+      gender: state.gender,
+      heightCm: state.heightCm,
+      weightKg: state.weightKg,
+      // ↓ always start fresh
+      symptoms: const [],
+      duration: 'Today',
+      severity: 5,
+      currentStep: 0,
+    );
+  }
 }
 
 // ─── Analysis state ───────────────────────────────────────────

@@ -15,7 +15,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -70,17 +71,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.cardSecondaryDark : AppColors.cardLight,
+                    color: isDark
+                        ? AppColors.cardSecondaryDark
+                        : AppColors.cardLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color:
+                          isDark ? AppColors.borderDark : AppColors.borderLight,
                       width: 1.5,
                     ),
                   ),
                   child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 16,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
@@ -119,9 +125,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               .animate(delay: 100.ms)
               .fadeIn(duration: 500.ms)
               .slideY(begin: 0.1, end: 0, duration: 500.ms),
-
           const SizedBox(height: 36),
-
           Form(
             key: _formKey,
             child: AuthTextField(
@@ -138,9 +142,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               .animate(delay: 150.ms)
               .fadeIn(duration: 400.ms)
               .slideY(begin: 0.1, end: 0, duration: 400.ms),
-
           const SizedBox(height: 28),
-
           AppButton(
             label: 'Send Reset Link',
             onPressed: isLoading ? null : _sendReset,
@@ -168,7 +170,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           Container(
             width: 88,
             height: 88,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
@@ -187,8 +189,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
           const SizedBox(height: 28),
           Text('Check Your Email',
-              style: AppTextStyles.headlineMedium(dark: isDark),
-              textAlign: TextAlign.center)
+                  style: AppTextStyles.headlineMedium(dark: isDark),
+                  textAlign: TextAlign.center)
               .animate(delay: 200.ms)
               .fadeIn(duration: 400.ms)
               .slideY(begin: 0.15, end: 0),

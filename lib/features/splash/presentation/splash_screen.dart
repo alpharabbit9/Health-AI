@@ -98,7 +98,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildLogo() {
-    return HealthAILogo(
+    return const HealthAILogo(
             size: 88, bgColor: AppColors.primary, iconColor: Colors.white)
         .animate()
         .scale(
@@ -111,9 +111,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildTitle() {
-    return Text(
+    return const Text(
       AppConstants.appName,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'PlusJakartaSans',
         fontSize: 42,
         fontWeight: FontWeight.w800,

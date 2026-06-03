@@ -56,7 +56,9 @@ class SocialLoginButton extends StatelessWidget {
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation(
-                          isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     )
@@ -119,7 +121,7 @@ class _GoogleIconPainter extends CustomPainter {
     final bgPaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, radius, bgPaint);
 
-    final textStyle = const TextStyle();
+    const textStyle = TextStyle();
     final textPainter = TextPainter(
       text: const TextSpan(
         text: 'G',
@@ -154,7 +156,8 @@ class OrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isDark ? AppColors.borderDark : AppColors.borderLight;
-    final textColor = isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight;
+    final textColor =
+        isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight;
 
     return Row(
       children: [

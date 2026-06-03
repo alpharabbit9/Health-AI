@@ -30,12 +30,16 @@ class _SymptomCheckerScreenState
   @override
   void initState() {
     super.initState();
+    // Providers were already reset in the tap handler before navigation.
+    // Just read the clean state to pre-populate the personal-info fields.
     final form = ref.read(checkerFormProvider);
     if (form.age != null) _ageCtrl.text = '${form.age}';
-    if (form.heightCm != null)
+    if (form.heightCm != null) {
       _heightCtrl.text = form.heightCm!.toStringAsFixed(0);
-    if (form.weightKg != null)
+    }
+    if (form.weightKg != null) {
       _weightCtrl.text = form.weightKg!.toStringAsFixed(1);
+    }
   }
 
   @override

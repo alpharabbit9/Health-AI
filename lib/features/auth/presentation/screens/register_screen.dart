@@ -332,7 +332,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -377,22 +379,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
                 height: 1.5,
               ),
-              children: [
-                const TextSpan(text: 'I agree to the '),
+              children: const [
+                TextSpan(text: 'I agree to the '),
                 TextSpan(
                   text: 'Terms of Service',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const TextSpan(text: ' and '),
+                TextSpan(text: ' and '),
                 TextSpan(
                   text: 'Privacy Policy',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -448,7 +452,8 @@ class _BackButton extends StatelessWidget {
         child: Icon(
           Icons.arrow_back_ios_new_rounded,
           size: 16,
-          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+          color:
+              isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
         ),
       ),
     );

@@ -213,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       children: [
         // Logo
-        Row(
+        const Row(
           children: [
             HealthAILogoChip(height: 34),
           ],
@@ -294,12 +294,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   border: Border.all(
                     color: _rememberMe
                         ? AppColors.primary
-                        : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                        : (isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight),
                     width: 1.5,
                   ),
                 ),
                 child: _rememberMe
-                    ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                    ? const Icon(Icons.check_rounded,
+                        size: 14, color: Colors.white)
                     : null,
               ),
               const SizedBox(width: 8),

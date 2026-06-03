@@ -9,11 +9,17 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../history/domain/entities/health_record.dart';
 import '../../history/presentation/providers/history_provider.dart';
+import 'providers/symptom_provider.dart';
 
 class SymptomsScreen extends ConsumerWidget {
   const SymptomsScreen({super.key});
 
-  void _launchChecker(BuildContext context) {
+  void _launchChecker(BuildContext context, WidgetRef ref) {
+    // Reset both providers BEFORE pushing the route so initState reads clean state.
+    // Calling mutations here (in a tap handler) is safe; calling them inside
+    // initState of the destination screen triggers a Riverpod assertion crash.
+    ref.read(analysisProvider.notifier).reset();
+    ref.read(checkerFormProvider.notifier).resetForNewCheck();
     context.push(AppRoutes.symptomsChecker);
   }
 
@@ -52,7 +58,7 @@ class SymptomsScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _HeroCTACard(
-                onTap: () => _launchChecker(context),
+                onTap: () => _launchChecker(context, ref),
               ),
             ),
           ),

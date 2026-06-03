@@ -31,6 +31,20 @@ class _DoctorsScreenState extends State<DoctorsScreen>
     _getLocation();
   }
 
+  // StatefulShellRoute keeps this widget alive across navigations.
+  // When the user arrives from an AI result with a new specialty,
+  // GoRouter updates the widget's props but does NOT call initState again.
+  // didUpdateWidget fires instead — pick up the new specialty here.
+  @override
+  void didUpdateWidget(DoctorsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.recommendedSpecialty != oldWidget.recommendedSpecialty) {
+      setState(() {
+        _selectedSpecialty = widget.recommendedSpecialty ?? 'All';
+      });
+    }
+  }
+
   @override
   void dispose() {
     _tabCtrl.dispose();
