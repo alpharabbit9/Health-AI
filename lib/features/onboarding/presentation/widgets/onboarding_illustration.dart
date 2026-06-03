@@ -100,12 +100,14 @@ class _AiAnalysisIllustration extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.illustrationGreen.withOpacity(0.2), width: 1.5),
+                  color: AppColors.illustrationGreen.withOpacity(0.2),
+                  width: 1.5),
             ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.05, 1.05),
-                  duration: 2000.ms, curve: Curves.easeInOut),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
+              begin: const Offset(0.95, 0.95),
+              end: const Offset(1.05, 1.05),
+              duration: 2000.ms,
+              curve: Curves.easeInOut),
 
           // Middle ring
           Container(
@@ -114,7 +116,8 @@ class _AiAnalysisIllustration extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.illustrationGreen.withOpacity(0.3), width: 1.5),
+                  color: AppColors.illustrationGreen.withOpacity(0.3),
+                  width: 1.5),
             ),
           ),
 
@@ -168,7 +171,10 @@ class _AiAnalysisIllustration extends StatelessWidget {
         top: 140 + positions[i].dy,
         child: _NodeDot(color: colors[i])
             .animate(delay: (i * 120).ms)
-            .scale(begin: const Offset(0, 0), duration: 500.ms, curve: Curves.elasticOut)
+            .scale(
+                begin: const Offset(0, 0),
+                duration: 500.ms,
+                curve: Curves.elasticOut)
             .fadeIn(duration: 300.ms),
       );
     });
@@ -231,7 +237,10 @@ class _FindDoctorsIllustration extends StatelessWidget {
                 child: const Icon(Icons.local_hospital_rounded,
                     color: Colors.white, size: 42),
               ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(
-                  begin: 0, end: -8, duration: 1800.ms, curve: Curves.easeInOut),
+                  begin: 0,
+                  end: -8,
+                  duration: 1800.ms,
+                  curve: Curves.easeInOut),
               const SizedBox(height: 4),
               CustomPaint(
                 size: const Size(24, 12),
@@ -263,11 +272,15 @@ class _FindDoctorsIllustration extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: i.isEven ? AppColors.illustrationGreen : AppColors.illustrationAmber,
+            color: i.isEven
+                ? AppColors.illustrationGreen
+                : AppColors.illustrationAmber,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: (i.isEven ? AppColors.illustrationGreen : AppColors.illustrationAmber)
+                color: (i.isEven
+                        ? AppColors.illustrationGreen
+                        : AppColors.illustrationAmber)
                     .withOpacity(0.35),
                 blurRadius: 10,
               ),
@@ -278,9 +291,10 @@ class _FindDoctorsIllustration extends StatelessWidget {
             color: Colors.white,
             size: 18,
           ),
-        )
-            .animate(delay: (200 + i * 150).ms)
-            .scale(begin: const Offset(0, 0), duration: 500.ms, curve: Curves.elasticOut),
+        ).animate(delay: (200 + i * 150).ms).scale(
+            begin: const Offset(0, 0),
+            duration: 500.ms,
+            curve: Curves.elasticOut),
       );
     });
   }
@@ -349,12 +363,13 @@ class _HealthHistoryIllustration extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.illustrationAmber.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Heart Rate',
                         style: TextStyle(
                           fontSize: 12,
@@ -391,19 +406,29 @@ class _HealthHistoryIllustration extends StatelessWidget {
           // Stats row
           Row(
             children: [
-              _StatCard(
-                icon: Icons.directions_walk_rounded,
-                label: 'Steps',
-                value: '8,240',
-                color: AppColors.illustrationGreen,
-              ).animate(delay: 150.ms).fadeIn(duration: 500.ms).slideX(begin: -0.2),
+              Expanded(
+                child: const _StatCard(
+                  icon: Icons.directions_walk_rounded,
+                  label: 'Steps',
+                  value: '8,240',
+                  color: AppColors.illustrationGreen,
+                )
+                    .animate(delay: 150.ms)
+                    .fadeIn(duration: 500.ms)
+                    .slideX(begin: -0.2),
+              ),
               const SizedBox(width: 12),
-              _StatCard(
-                icon: Icons.water_drop_rounded,
-                label: 'Water',
-                value: '2.1 L',
-                color: AppColors.illustrationBlue,
-              ).animate(delay: 250.ms).fadeIn(duration: 500.ms).slideX(begin: 0.2),
+              Expanded(
+                child: const _StatCard(
+                  icon: Icons.water_drop_rounded,
+                  label: 'Water',
+                  value: '2.1 L',
+                  color: AppColors.illustrationBlue,
+                )
+                    .animate(delay: 250.ms)
+                    .fadeIn(duration: 500.ms)
+                    .slideX(begin: 0.2),
+              ),
             ],
           ),
         ],
@@ -427,14 +452,16 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.15), blurRadius: 16, offset: const Offset(0, 6))
+            BoxShadow(
+                color: color.withOpacity(0.15),
+                blurRadius: 16,
+                offset: const Offset(0, 6))
           ],
         ),
         child: Column(
@@ -454,7 +481,6 @@ class _StatCard extends StatelessWidget {
                     color: AppColors.textTertiaryLight)),
           ],
         ),
-      ),
     );
   }
 }
@@ -514,13 +540,16 @@ class _RecommendationsIllustration extends StatelessWidget {
             top: 0,
             left: 30,
             right: 30,
-            child: _RecommendCard(
+            child: const _RecommendCard(
               icon: Icons.self_improvement_rounded,
               label: 'Mindfulness',
               subtitle: '10 min meditation',
               progress: 0.6,
               color: AppColors.illustrationPurple,
-            ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
+            )
+                .animate(delay: 100.ms)
+                .fadeIn(duration: 400.ms)
+                .slideY(begin: 0.1),
           ),
 
           // Middle card
@@ -528,13 +557,16 @@ class _RecommendationsIllustration extends StatelessWidget {
             top: 72,
             left: 15,
             right: 15,
-            child: _RecommendCard(
+            child: const _RecommendCard(
               icon: Icons.directions_run_rounded,
               label: 'Daily Exercise',
               subtitle: '30 min cardio',
               progress: 0.75,
               color: AppColors.illustrationAmber,
-            ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
+            )
+                .animate(delay: 200.ms)
+                .fadeIn(duration: 400.ms)
+                .slideY(begin: 0.1),
           ),
 
           // Front card
@@ -542,13 +574,16 @@ class _RecommendationsIllustration extends StatelessWidget {
             top: 144,
             left: 0,
             right: 0,
-            child: _RecommendCard(
+            child: const _RecommendCard(
               icon: Icons.eco_rounded,
               label: 'Healthy Diet',
               subtitle: '5 servings of veggies',
               progress: 0.45,
               color: AppColors.illustrationGreen,
-            ).animate(delay: 300.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
+            )
+                .animate(delay: 300.ms)
+                .fadeIn(duration: 400.ms)
+                .slideY(begin: 0.1),
           ),
         ],
       ),
@@ -580,7 +615,9 @@ class _RecommendCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: color.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 8)),
+              color: color.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8)),
         ],
       ),
       child: Row(

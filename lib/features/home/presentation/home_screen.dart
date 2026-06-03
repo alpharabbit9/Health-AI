@@ -29,6 +29,10 @@ class HomeScreen extends ConsumerWidget {
         user?.email.split('@').first ??
         'there';
 
+    final avatarUrl = ref.watch(
+      healthProfileProvider.select((p) => p?.avatarUrl),
+    );
+
     return Scaffold(
       backgroundColor: context.bgColor,
       body: CustomScrollView(
@@ -40,6 +44,7 @@ class HomeScreen extends ConsumerWidget {
               isDark: isDark,
               topPadding: top,
               initials: _initials(user?.fullName ?? ''),
+              avatarUrl: avatarUrl,
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -56,8 +61,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
           SliverToBoxAdapter(
-            child:
-                _SectionHeader(title: 'Quick Actions', isDark: isDark),
+            child: _SectionHeader(title: 'Quick Actions', isDark: isDark),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverToBoxAdapter(
@@ -68,8 +72,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
           SliverToBoxAdapter(
-            child:
-                _SectionHeader(title: 'Health Tips', isDark: isDark),
+            child: _SectionHeader(title: 'Health Tips', isDark: isDark),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           const SliverToBoxAdapter(child: _HealthTipsSection()),
@@ -113,12 +116,14 @@ class _Header extends StatelessWidget {
     required this.isDark,
     required this.topPadding,
     required this.initials,
+    this.avatarUrl,
   });
 
   final String firstName;
   final bool isDark;
   final double topPadding;
   final String initials;
+  final String? avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -141,8 +146,7 @@ class _Header extends StatelessWidget {
                     style: AppTextStyles.bodyMedium(dark: isDark)),
                 const SizedBox(height: 2),
                 Text(firstName,
-                    style:
-                        AppTextStyles.headlineLarge(dark: isDark)),
+                    style: AppTextStyles.headlineLarge(dark: isDark)),
               ],
             ),
           ),
@@ -158,27 +162,55 @@ class _Header extends StatelessWidget {
                 size: 20, color: context.textSecondary),
           ),
           const SizedBox(width: 10),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                  colors: AppColors.primaryGradient),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+          // ── Avatar — taps to Profile tab ────────────────
+          GestureDetector(
+            onTap: () => context.go(AppRoutes.profile),
+            child: _buildAvatar(context),
           ),
           const SizedBox(width: 4),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(BuildContext context) {
+    final hasPhoto = avatarUrl != null && avatarUrl!.isNotEmpty;
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      child: ClipOval(
+        child: hasPhoto
+            ? Image.network(
+                avatarUrl!,
+                width: 42,
+                height: 42,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _initialsCircle(),
+                loadingBuilder: (_, child, progress) =>
+                    progress == null ? child : _initialsCircle(),
+              )
+            : _initialsCircle(),
+      ),
+    );
+  }
+
+  Widget _initialsCircle() {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: AppColors.primaryGradient),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
@@ -243,30 +275,27 @@ class _HealthScoreCard extends StatelessWidget {
                         Text(
                           'Health Score',
                           style: AppTextStyles.labelMedium(
-                            color:
-                                Colors.white.withValues(alpha: 0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           _label,
-                          style: AppTextStyles.headlineLarge(
-                              color: Colors.white),
+                          style:
+                              AppTextStyles.headlineLarge(color: Colors.white),
                         ),
                         const Spacer(),
                         Text(
                           'Based on your health profile',
                           style: AppTextStyles.bodySmall(
-                            color:
-                                Colors.white.withValues(alpha: 0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Updated just now',
                           style: AppTextStyles.labelSmall(
-                            color:
-                                Colors.white.withValues(alpha: 0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -352,7 +381,10 @@ class _ArcPainter extends CustomPainter {
     const sw = 9.0;
 
     canvas.drawArc(
-      rect, _start, _sweep, false,
+      rect,
+      _start,
+      _sweep,
+      false,
       Paint()
         ..color = Colors.white.withValues(alpha: 0.22)
         ..style = PaintingStyle.stroke
@@ -362,7 +394,10 @@ class _ArcPainter extends CustomPainter {
 
     if (progress > 0.01) {
       canvas.drawArc(
-        rect, _start, _sweep * progress, false,
+        rect,
+        _start,
+        _sweep * progress,
+        false,
         Paint()
           ..color = Colors.white
           ..style = PaintingStyle.stroke
@@ -379,8 +414,7 @@ class _ArcPainter extends CustomPainter {
 // ─── Quick stats ──────────────────────────────────────────────
 
 class _QuickStatsGrid extends StatelessWidget {
-  const _QuickStatsGrid(
-      {required this.records, required this.isDark});
+  const _QuickStatsGrid({required this.records, required this.isDark});
   final List<HealthRecord> records;
   final bool isDark;
 
@@ -403,21 +437,21 @@ class _QuickStatsGrid extends StatelessWidget {
         bgLight: AppColors.infoLight,
         bgDark: const Color(0xFF1A2A4A),
       ),
-      _StatData(
+      const _StatData(
         icon: Icons.local_hospital_outlined,
         value: 1,
         label: 'Doctor\nConsults',
         color: AppColors.primary,
         bgLight: AppColors.primaryLight,
-        bgDark: const Color(0xFF0D2E1C),
+        bgDark: Color(0xFF0D2E1C),
       ),
-      _StatData(
+      const _StatData(
         icon: Icons.water_drop_outlined,
         value: 6,
         label: 'Water\nCups',
-        color: const Color(0xFF06B6D4),
-        bgLight: const Color(0xFFE0F7FA),
-        bgDark: const Color(0xFF0A2A30),
+        color: Color(0xFF06B6D4),
+        bgLight: Color(0xFFE0F7FA),
+        bgDark: Color(0xFF0A2A30),
       ),
     ];
 
@@ -430,9 +464,7 @@ class _QuickStatsGrid extends StatelessWidget {
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 1.55,
-        children: stats
-            .map((s) => _StatCard(data: s, isDark: isDark))
-            .toList(),
+        children: stats.map((s) => _StatCard(data: s, isDark: isDark)).toList(),
       ),
     );
   }
@@ -493,14 +525,11 @@ class _StatCard extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   builder: (_, val, __) => Text(
                     '$val',
-                    style: AppTextStyles.headlineMedium(
-                            dark: isDark)
+                    style: AppTextStyles.headlineMedium(dark: isDark)
                         .copyWith(fontSize: 22),
                   ),
                 ),
-                Text(data.label,
-                    style:
-                        AppTextStyles.bodySmall(dark: isDark)),
+                Text(data.label, style: AppTextStyles.bodySmall(dark: isDark)),
               ],
             ),
           ),
@@ -513,22 +542,21 @@ class _StatCard extends StatelessWidget {
 // ─── Quick actions ────────────────────────────────────────────
 
 class _QuickActionsGrid extends StatelessWidget {
-  const _QuickActionsGrid(
-      {required this.recordCount, required this.isDark});
+  const _QuickActionsGrid({required this.recordCount, required this.isDark});
   final int recordCount;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _ActionData(
+      const _ActionData(
         icon: Icons.medical_services_outlined,
         title: 'Check Symptoms',
         subtitle: 'AI Analysis',
-        gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+        gradient: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
         route: AppRoutes.symptoms,
       ),
-      _ActionData(
+      const _ActionData(
         icon: Icons.person_search_outlined,
         title: 'Find Doctors',
         subtitle: 'Nearby',
@@ -561,9 +589,7 @@ class _QuickActionsGrid extends StatelessWidget {
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
         childAspectRatio: 1.05,
-        children: actions
-            .map((a) => _ActionCard(data: a))
-            .toList(),
+        children: actions.map((a) => _ActionCard(data: a)).toList(),
       ),
     );
   }
@@ -632,8 +658,7 @@ class _ActionCard extends StatelessWidget {
             ),
             const Spacer(),
             Text(data.title,
-                style: AppTextStyles.titleSmall(
-                    color: Colors.white)),
+                style: AppTextStyles.titleSmall(color: Colors.white)),
             const SizedBox(height: 2),
             Text(
               data.subtitle,
@@ -732,8 +757,7 @@ class _TipCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tip.emoji,
-              style: const TextStyle(fontSize: 30)),
+          Text(tip.emoji, style: const TextStyle(fontSize: 30)),
           const Spacer(),
           Text(
             tip.title,
@@ -761,8 +785,7 @@ class _TipCard extends StatelessWidget {
 // ─── Recent analysis ──────────────────────────────────────────
 
 class _RecentAnalysis extends StatelessWidget {
-  const _RecentAnalysis(
-      {required this.records, required this.isDark});
+  const _RecentAnalysis({required this.records, required this.isDark});
   final List<HealthRecord> records;
   final bool isDark;
 
@@ -771,17 +794,15 @@ class _RecentAnalysis extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        children: records
-            .map((r) => _RecentCard(record: r, isDark: isDark))
-            .toList(),
+        children:
+            records.map((r) => _RecentCard(record: r, isDark: isDark)).toList(),
       ),
     );
   }
 }
 
 class _RecentCard extends StatelessWidget {
-  const _RecentCard(
-      {required this.record, required this.isDark});
+  const _RecentCard({required this.record, required this.isDark});
   final HealthRecord record;
   final bool isDark;
 
@@ -829,22 +850,18 @@ class _RecentCard extends StatelessWidget {
                 children: [
                   Text(
                     record.symptoms.take(2).join(', '),
-                    style:
-                        AppTextStyles.titleSmall(dark: isDark),
+                    style: AppTextStyles.titleSmall(dark: isDark),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
-                  Text(timeLabel,
-                      style:
-                          AppTextStyles.bodySmall(dark: isDark)),
+                  Text(timeLabel, style: AppTextStyles.bodySmall(dark: isDark)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: risk.bgColor,
                 borderRadius: BorderRadius.circular(20),
@@ -890,15 +907,13 @@ class _SectionHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: AppTextStyles.titleLarge(dark: isDark)),
+          Text(title, style: AppTextStyles.titleLarge(dark: isDark)),
           if (actionLabel != null)
             GestureDetector(
               onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: AppTextStyles.labelMedium(
-                    color: AppColors.primary),
+                style: AppTextStyles.labelMedium(color: AppColors.primary),
               ),
             ),
         ],

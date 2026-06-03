@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/router/app_router.dart';
@@ -10,11 +12,55 @@ import '../../../core/theme/app_text_styles.dart';
 import '../domain/entities/health_profile.dart';
 import 'providers/profile_provider.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _isUploading = false;
+
+  Future<void> _pickAndUploadAvatar() async {
+    final isDark = context.isDark;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SourcePickerSheet(isDark: isDark),
+    );
+    if (source == null || !mounted) return;
+
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    if (file == null || !mounted) return;
+
+    final bytes = await file.readAsBytes();
+    final ext = file.name.split('.').last.toLowerCase();
+
+    setState(() => _isUploading = true);
+    try {
+      await ref.read(healthProfileProvider.notifier).uploadAvatar(bytes, ext);
+      if (mounted) context.showSuccessSnack('Profile picture updated');
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        context.showErrorSnack(
+          msg.length > 100 ? 'Upload failed — check debug console' : msg,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(healthProfileProvider);
     final isDark = context.isDark;
     final top = MediaQuery.of(context).padding.top;
@@ -37,6 +83,8 @@ class ProfileScreen extends ConsumerWidget {
               profile: profile,
               isDark: isDark,
               topPadding: top,
+              isUploading: _isUploading,
+              onAvatarTap: _pickAndUploadAvatar,
               onEdit: () => _showEditSheet(context, ref, profile),
               onSettings: () => context.push(AppRoutes.settings),
             ),
@@ -135,6 +183,86 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+// ─── Source picker bottom sheet ───────────────────────────────
+
+class _SourcePickerSheet extends StatelessWidget {
+  const _SourcePickerSheet({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 4),
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+              child: Text(
+                'Change Profile Photo',
+                style: AppTextStyles.titleLarge(dark: isDark),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.camera_alt_rounded,
+                    color: AppColors.primary),
+              ),
+              title: Text('Camera',
+                  style: AppTextStyles.titleSmall(dark: isDark)),
+              subtitle: Text('Take a new photo',
+                  style: AppTextStyles.bodySmall(dark: isDark)),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.photo_library_rounded,
+                    color: AppColors.info),
+              ),
+              title: Text('Photo Library',
+                  style: AppTextStyles.titleSmall(dark: isDark)),
+              subtitle: Text('Choose from your gallery',
+                  style: AppTextStyles.bodySmall(dark: isDark)),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Profile header ───────────────────────────────────────────
 
 class _ProfileHeader extends StatelessWidget {
@@ -142,6 +270,8 @@ class _ProfileHeader extends StatelessWidget {
     required this.profile,
     required this.isDark,
     required this.topPadding,
+    required this.isUploading,
+    required this.onAvatarTap,
     required this.onEdit,
     required this.onSettings,
   });
@@ -149,6 +279,8 @@ class _ProfileHeader extends StatelessWidget {
   final HealthProfile profile;
   final bool isDark;
   final double topPadding;
+  final bool isUploading;
+  final VoidCallback onAvatarTap;
   final VoidCallback onEdit;
   final VoidCallback onSettings;
 
@@ -176,56 +308,81 @@ class _ProfileHeader extends StatelessWidget {
                 'My Profile',
                 style: AppTextStyles.titleLarge(color: Colors.white),
               ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined,
-                    color: Colors.white, size: 22),
-                onPressed: onSettings,
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: onEdit,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Edit',
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined,
+                        color: Colors.white, size: 22),
+                    onPressed: onSettings,
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 20),
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    width: 2,
+          // ── Avatar with camera badge ────────────────────
+          GestureDetector(
+            onTap: isUploading ? null : onAvatarTap,
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                // Avatar circle
+                Container(
+                  width: 92,
+                  height: 92,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      width: 2.5,
+                    ),
                   ),
+                  child: ClipOval(child: _avatarContent(initials)),
                 ),
-                child: Center(
-                  child: Text(
-                    initials,
-                    style: AppTextStyles.headlineLarge(
-                        color: Colors.white),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: onEdit,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
+                // Camera badge
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.edit_rounded,
-                      size: 14, color: AppColors.primary),
+                  child: isUploading
+                      ? const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
+                        )
+                      : const Icon(Icons.camera_alt_rounded,
+                          size: 15, color: AppColors.primary),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           Text(
             profile.fullName.isEmpty ? 'HealthAI User' : profile.fullName,
-            style:
-                AppTextStyles.headlineSmall(color: Colors.white),
+            style: AppTextStyles.headlineSmall(color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(
@@ -236,6 +393,53 @@ class _ProfileHeader extends StatelessWidget {
           const SizedBox(height: 16),
           _CompletionBar(percent: profile.completenessPercent),
         ],
+      ),
+    );
+  }
+
+  Widget _avatarContent(String initials) {
+    if (isUploading) {
+      return Container(
+        color: Colors.white.withValues(alpha: 0.2),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    final url = profile.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        width: 92,
+        height: 92,
+        errorBuilder: (_, __, ___) => _initialsPlaceholder(initials),
+        loadingBuilder: (_, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            color: Colors.white.withValues(alpha: 0.2),
+            child: const Center(
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white),
+            ),
+          );
+        },
+      );
+    }
+    return _initialsPlaceholder(initials);
+  }
+
+  Widget _initialsPlaceholder(String initials) {
+    return Container(
+      color: Colors.white.withValues(alpha: 0.25),
+      child: Center(
+        child: Text(
+          initials,
+          style: AppTextStyles.headlineLarge(color: Colors.white),
+        ),
       ),
     );
   }
@@ -870,7 +1074,12 @@ class _EditProfileSheetState
       }
     } catch (e) {
       if (mounted) {
-        context.showErrorSnack('Failed to save profile');
+        final msg = e is PostgrestException
+            ? 'DB error: ${e.message}'
+            : e.toString().replaceFirst('Exception: ', '');
+        context.showErrorSnack(
+          msg.length > 100 ? 'Save failed — check debug console' : msg,
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
 import '../domain/entities/health_record.dart';
 import 'providers/history_provider.dart';
 
@@ -23,26 +24,33 @@ class HistoryScreen extends ConsumerWidget {
       backgroundColor: context.bgColor,
       body: records.isEmpty
           ? _EmptyState(isDark: isDark, top: top)
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
+          : RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                final user = ref.read(currentUserProvider);
+                if (user != null) {
+                  await ref
+                      .read(healthRecordsProvider.notifier)
+                      .loadFromSupabase(user.id);
+                }
+              },
+              child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding:
-                        EdgeInsets.fromLTRB(24, top + 20, 24, 0),
+                    padding: EdgeInsets.fromLTRB(24, top + 20, 24, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Health Journal',
-                          style:
-                              AppTextStyles.headlineLarge(dark: isDark),
+                          style: AppTextStyles.headlineLarge(dark: isDark),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${records.length} record${records.length == 1 ? '' : 's'}',
-                          style:
-                              AppTextStyles.bodyMedium(dark: isDark),
+                          style: AppTextStyles.bodyMedium(dark: isDark),
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -70,12 +78,12 @@ class HistoryScreen extends ConsumerWidget {
                 ],
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 100 +
-                        MediaQuery.of(context).padding.bottom,
+                    height: 100 + MediaQuery.of(context).padding.bottom,
                   ),
                 ),
               ],
             ),
+          ),
     );
   }
 }
@@ -97,9 +105,7 @@ Map<String, List<HealthRecord>> _groupByDate(List<HealthRecord> records) {
       key = 'Yesterday';
     } else {
       final diff = today.difference(d).inDays;
-      key = diff < 7
-          ? '$diff days ago'
-          : DateFormat('d MMM y').format(r.date);
+      key = diff < 7 ? '$diff days ago' : DateFormat('d MMM y').format(r.date);
     }
     result.putIfAbsent(key, () => []).add(r);
   }
@@ -293,7 +299,7 @@ class _EmptyState extends StatelessWidget {
                     Container(
                       width: 110,
                       height: 110,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primaryLight,
                         shape: BoxShape.circle,
                       ),

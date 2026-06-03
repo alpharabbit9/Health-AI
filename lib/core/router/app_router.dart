@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -14,10 +13,9 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/symptoms/presentation/screens/symptom_checker_screen.dart';
 import '../../features/symptoms/presentation/symptoms_screen.dart';
 import '../../shared/widgets/app_shell.dart';
-import '../constants/app_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── Route paths ──────────────────────────────────────────────
 class AppRoutes {
@@ -29,6 +27,7 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String symptoms = '/symptoms';
+  static const String symptomsChecker = '/symptoms/checker';
   static const String history = '/history';
   static const String doctors = '/doctors';
   static const String profile = '/profile';
@@ -84,6 +83,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               path: AppRoutes.symptoms,
               pageBuilder: (_, state) =>
                   const NoTransitionPage(child: SymptomsScreen()),
+              routes: [
+                GoRoute(
+                  path: 'checker',
+                  pageBuilder: (_, state) => _slideTransitionPage(
+                    state,
+                    const SymptomCheckerScreen(),
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -107,8 +115,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.doctors,
-              pageBuilder: (_, state) =>
-                  const NoTransitionPage(child: DoctorsScreen()),
+              pageBuilder: (_, state) {
+                final specialty =
+                    state.uri.queryParameters['specialty'];
+                return NoTransitionPage(
+                  child: DoctorsScreen(recommendedSpecialty: specialty),
+                );
+              },
             ),
           ]),
           StatefulShellBranch(routes: [

@@ -1,15 +1,17 @@
+import '../config/env.dart';
+
 class SupabaseConstants {
   SupabaseConstants._();
 
-  // ─── Credentials ─────────────────────────────────────
-  // Replace with your Supabase project credentials from supabase.com/dashboard
-  static const String supabaseUrl = 'https://ajilehorjyccyzzyjown.supabase.co';
-  static const String supabaseAnonKey = 'sb_publishable_T8BVbmiZb6IO6t1WX16dhQ_T4YNrofk';
+  // ─── Credentials (loaded from .env) ──────────────────
+  static String get supabaseUrl => Env.supabaseUrl;
+  static String get supabaseAnonKey => Env.supabaseAnonKey;
 
   // ─── Tables ──────────────────────────────────────────
   static const String usersTable = 'users';
   static const String profilesTable = 'profiles';
   static const String healthRecordsTable = 'health_records';
+  static const String symptomAnalysesTable = 'symptom_analyses';
   static const String symptomsTable = 'symptoms';
   static const String doctorsTable = 'doctors';
 
@@ -18,7 +20,6 @@ class SupabaseConstants {
   static const String documentsBucket = 'health_documents';
 
   // ─── Auth Deep Link ──────────────────────────────────
-  // Configure this in your Supabase Dashboard → Authentication → URL Configuration
   static const String redirectUrl = 'io.healthai.app://auth-callback';
 
   // ─── Auth Providers ──────────────────────────────────

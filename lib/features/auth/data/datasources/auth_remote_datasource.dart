@@ -33,22 +33,20 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     required String email,
     required String password,
   }) async {
+    final response = await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = response.user;
+    if (user == null) throw Exception('Sign in failed: no user returned');
+
+    // Profile fetch is best-effort — login succeeds even if the users table
+    // doesn't exist yet or the fetch fails for any other reason.
+    Map<String, dynamic>? profileRow;
     try {
-      final response = await _client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = response.user;
-      if (user == null) throw Exception('Sign in failed: no user returned');
-
-      debugPrint('[DATASOURCE] Sign in successful for $email');
-
-      // Fetch profile from users table; upsert if missing (handles legacy accounts)
-      final profileRow = await _profile.fetchProfile(user.id);
+      profileRow = await _profile.fetchProfile(user.id);
       if (profileRow == null) {
-        debugPrint(
-            '[DATASOURCE] Profile not found, upserting for user ${user.id}');
         await _profile.upsertProfile(
           id: user.id,
           email: user.email ?? email,
@@ -56,15 +54,13 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
           age: user.userMetadata?['age'] as int?,
           gender: user.userMetadata?['gender'] as String?,
         );
-        return _toEntity(user, await _profile.fetchProfile(user.id));
+        profileRow = await _profile.fetchProfile(user.id);
       }
-
-      return _toEntity(user, profileRow);
     } catch (e) {
-      debugPrint('[DATASOURCE] Sign in error: $e');
-      debugPrint('[DATASOURCE] Error type: ${e.runtimeType}');
-      rethrow;
+      debugPrint('[HealthAI] Profile fetch skipped (table may not exist): $e');
     }
+
+    return _toEntity(user, profileRow);
   }
 
   // ─── Sign Up ────────────────────────────────────────────
@@ -76,64 +72,42 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     required int age,
     required String gender,
   }) async {
+    final response = await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': fullName, 'age': age, 'gender': gender},
+    );
+
+    final user = response.user;
+    if (user == null) throw Exception('Sign up failed: no user returned');
+
+    // Best-effort profile insert — never roll back the auth user.
+    // The DB trigger may already have created the row.
     try {
-      debugPrint('[DATASOURCE] Attempting signup for email: $email');
-
-      // Step 1: Create the auth user (also writes metadata used by the DB trigger)
-      final response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {'full_name': fullName, 'age': age, 'gender': gender},
-      );
-
-      final user = response.user;
-      if (user == null) throw Exception('Sign up failed: no user returned');
-
-      debugPrint('[DATASOURCE] Auth user created: ${user.id}');
-
-      // Step 2: Insert profile row from the client side.
-      // The DB trigger (handle_new_auth_user) may have already created it;
-      // the insert uses ON CONFLICT DO NOTHING so it is idempotent.
-      try {
-        await _profile.createProfile(
-          id: user.id,
-          email: email,
-          fullName: fullName,
-          age: age,
-          gender: gender,
-        );
-        debugPrint('[DATASOURCE] Profile created successfully');
-      } on PostgrestException catch (e) {
-        debugPrint('[DATASOURCE] PostgrestException: ${e.code} - ${e.message}');
-        // Duplicate key means the trigger already created the row — that's fine.
-        if (e.code != '23505') {
-          // Any other DB error: sign out so the orphaned auth user cannot log in
-          // without a profile, then surface a clear message.
-          await _client.auth.signOut();
-          throw Exception(
-            'Account created but profile setup failed. Please try again. (${e.message})',
-          );
-        }
-      } catch (e) {
-        debugPrint('[DATASOURCE] Signup error during profile creation: $e');
-        await _client.auth.signOut();
-        throw Exception(
-          'Account created but profile setup failed. Please try again.',
-        );
-      }
-
-      return UserEntity(
+      await _profile.createProfile(
         id: user.id,
         email: email,
         fullName: fullName,
         age: age,
         gender: gender,
-        createdAt: DateTime.now(),
       );
+    } on PostgrestException catch (e) {
+      // 23505 = duplicate key — DB trigger already created the row, fine.
+      if (e.code != '23505') {
+        debugPrint('[HealthAI] Profile insert failed (non-fatal): ${e.message}');
+      }
     } catch (e) {
-      debugPrint('[DATASOURCE] Sign up error: $e');
-      rethrow;
+      debugPrint('[HealthAI] Profile insert skipped: $e');
     }
+
+    return UserEntity(
+      id: user.id,
+      email: email,
+      fullName: fullName,
+      age: age,
+      gender: gender,
+      createdAt: DateTime.now(),
+    );
   }
 
   // ─── Sign Out ───────────────────────────────────────────
@@ -151,7 +125,12 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     final user = _client.auth.currentUser;
     if (user == null) return null;
 
-    final profileRow = await _profile.fetchProfile(user.id);
+    Map<String, dynamic>? profileRow;
+    try {
+      profileRow = await _profile.fetchProfile(user.id);
+    } catch (e) {
+      debugPrint('[HealthAI] getCurrentUser profile fetch failed: $e');
+    }
     return _toEntity(user, profileRow);
   }
 
@@ -161,7 +140,10 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     return _client.auth.onAuthStateChange.asyncMap((event) async {
       final user = event.session?.user;
       if (user == null) return null;
-      final profileRow = await _profile.fetchProfile(user.id);
+      Map<String, dynamic>? profileRow;
+      try {
+        profileRow = await _profile.fetchProfile(user.id);
+      } catch (_) {}
       return _toEntity(user, profileRow);
     });
   }
@@ -180,9 +162,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       avatarUrl: profile?['avatar_url'] as String?,
       createdAt: (profile != null && profile['created_at'] != null)
           ? DateTime.tryParse(profile['created_at'] as String) ?? DateTime.now()
-          : (authUser.createdAt != null
-              ? DateTime.tryParse(authUser.createdAt!) ?? DateTime.now()
-              : DateTime.now()),
+          : (DateTime.tryParse(authUser.createdAt!) ?? DateTime.now()),
     );
   }
 }

@@ -1,14 +1,42 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../symptoms/data/repositories/symptom_repository_impl.dart';
+import '../../../symptoms/domain/entities/symptom_analysis.dart' as sa;
 import '../../domain/entities/health_record.dart';
 
 final healthRecordsProvider =
     StateNotifierProvider<HealthRecordsNotifier, List<HealthRecord>>(
-  (ref) => HealthRecordsNotifier(),
+  (ref) {
+    final notifier = HealthRecordsNotifier();
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      Future.microtask(() => notifier.loadFromSupabase(user.id));
+    }
+    return notifier;
+  },
 );
 
 class HealthRecordsNotifier extends StateNotifier<List<HealthRecord>> {
-  HealthRecordsNotifier() : super(_mockRecords());
+  HealthRecordsNotifier() : super(const []);
+
+  Future<void> loadFromSupabase(String userId) async {
+    try {
+      final repo = SymptomRepositoryImpl(Supabase.instance.client);
+      final analyses = await repo.getHistory(userId);
+      if (mounted) {
+        state = analyses.map(_fromAnalysis).toList();
+      }
+    } catch (e) {
+      debugPrint('[HealthAI] History load failed: $e');
+    }
+  }
+
+  void addFromAnalysis(sa.SymptomAnalysis analysis) {
+    addRecord(_fromAnalysis(analysis));
+  }
 
   void addRecord(HealthRecord record) => state = [record, ...state];
 
@@ -16,42 +44,28 @@ class HealthRecordsNotifier extends StateNotifier<List<HealthRecord>> {
       state = state.where((r) => r.id != id).toList();
 }
 
-List<HealthRecord> _mockRecords() => [
-      HealthRecord(
-        id: '1',
-        date: DateTime.now().subtract(const Duration(hours: 2)),
-        symptoms: const ['Headache', 'Fatigue', 'Eye strain'],
-        riskLevel: RiskLevel.low,
-        possibleConditions: 'Tension headache, Digital eye strain',
-        aiRecommendations:
-            'Rest your eyes every 20 minutes using the 20-20-20 rule. Stay well-hydrated and take OTC pain relievers if needed. Reduce screen time before bed.',
-      ),
-      HealthRecord(
-        id: '2',
-        date: DateTime.now().subtract(const Duration(days: 1, hours: 5)),
-        symptoms: const ['Fever 101°F', 'Cough', 'Sore throat', 'Body aches'],
-        riskLevel: RiskLevel.medium,
-        possibleConditions: 'Common cold, Influenza, Upper respiratory infection',
-        aiRecommendations:
-            'Rest, stay hydrated, and take fever reducers. Monitor temperature closely. Consult a doctor if fever exceeds 103°F or persists beyond 3 days.',
-      ),
-      HealthRecord(
-        id: '3',
-        date: DateTime.now().subtract(const Duration(days: 3)),
-        symptoms: const ['Stomach cramps', 'Nausea', 'Bloating'],
-        riskLevel: RiskLevel.low,
-        possibleConditions: 'Indigestion, Gastritis, IBS flare',
-        aiRecommendations:
-            'Avoid spicy, fatty, and acidic foods. Try the BRAT diet (Bananas, Rice, Applesauce, Toast). Antacids may help. See a doctor if symptoms persist.',
-      ),
-      HealthRecord(
-        id: '4',
-        date: DateTime.now().subtract(const Duration(days: 7)),
-        symptoms: const ['Shortness of breath', 'Chest tightness', 'Dry cough'],
-        riskLevel: RiskLevel.high,
-        possibleConditions:
-            'Asthma exacerbation, Allergic reaction, Anxiety attack',
-        aiRecommendations:
-            'Seek medical attention promptly. Use your rescue inhaler if prescribed. Avoid known allergens. If symptoms are severe or worsening, call emergency services immediately.',
-      ),
-    ];
+HealthRecord _fromAnalysis(sa.SymptomAnalysis a) {
+  final RiskLevel risk;
+  switch (a.riskLevel) {
+    case sa.RiskLevel.low:
+      risk = RiskLevel.low;
+    case sa.RiskLevel.moderate:
+      risk = RiskLevel.medium;
+    case sa.RiskLevel.high:
+      risk = RiskLevel.high;
+  }
+  return HealthRecord(
+    id: a.id ?? '${a.userId}_${a.createdAt.millisecondsSinceEpoch}',
+    date: a.createdAt,
+    symptoms: a.symptoms,
+    riskLevel: risk,
+    possibleConditions: a.possibleConditions.isNotEmpty
+        ? a.possibleConditions.map((c) => c.name).join(', ')
+        : null,
+    aiRecommendations: a.selfCareAdvice.isNotEmpty
+        ? a.selfCareAdvice
+        : a.recommendations.isNotEmpty
+            ? a.recommendations.map((r) => r.description).join(' ')
+            : null,
+  );
+}
