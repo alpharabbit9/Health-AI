@@ -32,7 +32,7 @@ class SocialLoginButton extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.15 : 0.05),
+              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
               blurRadius: 12,
               offset: const Offset(0, 3),
             ),
@@ -121,7 +121,6 @@ class _GoogleIconPainter extends CustomPainter {
     final bgPaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, radius, bgPaint);
 
-    const textStyle = TextStyle();
     final textPainter = TextPainter(
       text: const TextSpan(
         text: 'G',

@@ -428,9 +428,9 @@ class _Step2Symptoms extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: customCtrl,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Add a symptom…',
-                    prefixIcon: const Icon(Icons.add_circle_outline,
+                    prefixIcon: Icon(Icons.add_circle_outline,
                         color: AppColors.primary),
                   ),
                   onSubmitted: onAdd,

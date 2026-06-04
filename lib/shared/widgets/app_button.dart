@@ -135,7 +135,7 @@ class _PrimaryBtn extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.38),
+                  color: AppColors.primary.withValues(alpha: 0.38),
                   blurRadius: 22,
                   offset: const Offset(0, 8),
                 ),
@@ -147,7 +147,7 @@ class _PrimaryBtn extends StatelessWidget {
         child: InkWell(
           onTap: isLoading ? null : onPressed,
           borderRadius: BorderRadius.circular(16),
-          splashColor: Colors.white.withOpacity(0.1),
+          splashColor: Colors.white.withValues(alpha: 0.1),
           child: _Content(
             label: label,
             isLoading: isLoading,
@@ -339,7 +339,7 @@ class _DangerBtn extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.danger.withOpacity(0.3),
+            color: AppColors.danger.withValues(alpha: 0.3),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),

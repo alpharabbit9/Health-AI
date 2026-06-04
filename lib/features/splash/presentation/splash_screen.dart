@@ -9,7 +9,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/health_ai_logo.dart';
-import '../../auth/presentation/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -45,7 +44,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // Check Supabase session
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      if (mounted) context.go(AppRoutes.home);
+      if (!mounted) return;
+      // Fetch role from users table to decide which shell to open
+      String role = 'user';
+      try {
+        final row = await Supabase.instance.client
+            .from('users')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+        role = row?['role'] as String? ?? 'user';
+      } catch (_) {}
+      if (mounted) {
+        context.go(role == 'admin' ? AppRoutes.admin : AppRoutes.home);
+      }
       return;
     }
 
@@ -132,7 +144,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         fontFamily: 'Inter',
         fontSize: 15,
         fontWeight: FontWeight.w400,
-        color: Colors.white.withOpacity(0.65),
+        color: Colors.white.withValues(alpha: 0.65),
         letterSpacing: 0.3,
         height: 1.5,
       ),
@@ -150,7 +162,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           width: i == 1 ? 28 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: i == 1 ? AppColors.primary : Colors.white.withOpacity(0.25),
+            color: i == 1 ? AppColors.primary : Colors.white.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(4),
           ),
         )

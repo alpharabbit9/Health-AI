@@ -165,6 +165,6 @@ class AppTextStyles {
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.3,
-        color: color ?? Colors.white.withOpacity(0.8),
+        color: color ?? Colors.white.withValues(alpha: 0.8),
       );
 }

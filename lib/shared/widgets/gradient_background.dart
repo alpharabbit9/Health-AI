@@ -50,7 +50,7 @@ class BlobDecoration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.primary.withOpacity(0.07);
+    final c = color ?? AppColors.primary.withValues(alpha: 0.07);
     return Stack(
       children: [
         if (topRight)

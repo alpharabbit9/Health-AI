@@ -76,7 +76,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
     if (success && mounted) {
-      context.go(AppRoutes.home);
+      final user = ref.read(currentUserProvider);
+      context.go(user?.isAdmin == true ? AppRoutes.admin : AppRoutes.home);
     }
   }
 
@@ -84,7 +85,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AuthLoading;
-    final error = authState is AuthError ? authState.message : null;
     final isDark = context.isDark;
 
     ref.listen(authProvider, (_, next) {
@@ -106,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               width: 350,
               height: 350,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),

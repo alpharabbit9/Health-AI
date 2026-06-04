@@ -56,7 +56,7 @@ class _LogoIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(size * 0.28),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.4),
+            color: AppColors.primary.withValues(alpha: 0.4),
             blurRadius: size * 0.3,
             offset: Offset(0, size * 0.1),
           ),

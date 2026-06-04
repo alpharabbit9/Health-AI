@@ -9,6 +9,7 @@ import '../../../core/extensions/context_extensions.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
 import '../domain/entities/health_profile.dart';
 import 'providers/profile_provider.dart';
 
@@ -62,6 +63,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(healthProfileProvider);
+    final role = ref.watch(currentUserProvider)?.role ?? 'user';
     final isDark = context.isDark;
     final top = MediaQuery.of(context).padding.top;
 
@@ -81,6 +83,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           SliverToBoxAdapter(
             child: _ProfileHeader(
               profile: profile,
+              role: role,
               isDark: isDark,
               topPadding: top,
               isUploading: _isUploading,
@@ -268,6 +271,7 @@ class _SourcePickerSheet extends StatelessWidget {
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.profile,
+    required this.role,
     required this.isDark,
     required this.topPadding,
     required this.isUploading,
@@ -277,6 +281,7 @@ class _ProfileHeader extends StatelessWidget {
   });
 
   final HealthProfile profile;
+  final String role;
   final bool isDark;
   final double topPadding;
   final bool isUploading;
@@ -384,7 +389,9 @@ class _ProfileHeader extends StatelessWidget {
             profile.fullName.isEmpty ? 'HealthAI User' : profile.fullName,
             style: AppTextStyles.headlineSmall(color: Colors.white),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
+          _RoleBadge(role: role),
+          const SizedBox(height: 6),
           Text(
             profile.email,
             style: AppTextStyles.bodySmall(
@@ -449,6 +456,47 @@ class _ProfileHeader extends StatelessWidget {
     if (parts.isEmpty || name.isEmpty) return 'H';
     if (parts.length == 1) return parts[0][0].toUpperCase();
     return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  }
+}
+
+// ─── Role badge (user / admin) ────────────────────────────────
+
+class _RoleBadge extends StatelessWidget {
+  const _RoleBadge({required this.role});
+  final String role;
+
+  @override
+  Widget build(BuildContext context) {
+    final isAdmin = role == 'admin';
+    final label = isAdmin ? 'Admin' : 'User';
+    final icon = isAdmin
+        ? Icons.shield_rounded
+        : Icons.person_rounded;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: Colors.white),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

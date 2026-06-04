@@ -14,6 +14,8 @@ class SupabaseConstants {
   static const String symptomAnalysesTable = 'symptom_analyses';
   static const String symptomsTable = 'symptoms';
   static const String doctorsTable = 'doctors';
+  static const String healthTipsTable = 'health_tips';
+  static const String feedbackTable = 'feedback';
 
   // ─── Storage Buckets ─────────────────────────────────
   static const String avatarsBucket = 'avatars';

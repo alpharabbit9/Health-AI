@@ -80,7 +80,7 @@ class AppTheme {
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         margin: EdgeInsets.zero,
-        shadowColor: Colors.black.withOpacity(0.06),
+        shadowColor: Colors.black.withValues(alpha: 0.06),
       ),
 
       // ─── Input ───────────────────────────────────────

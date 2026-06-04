@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -46,7 +45,7 @@ class OnboardingIllustration extends StatelessWidget {
             width: 180,
             height: 180,
             decoration: BoxDecoration(
-              color: bgColors[1].withOpacity(0.5),
+              color: bgColors[1].withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
           ),
@@ -58,7 +57,7 @@ class OnboardingIllustration extends StatelessWidget {
             width: 220,
             height: 220,
             decoration: BoxDecoration(
-              color: bgColors[1].withOpacity(0.4),
+              color: bgColors[1].withValues(alpha: 0.4),
               shape: BoxShape.circle,
             ),
           ),
@@ -100,7 +99,7 @@ class _AiAnalysisIllustration extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.illustrationGreen.withOpacity(0.2),
+                  color: AppColors.illustrationGreen.withValues(alpha: 0.2),
                   width: 1.5),
             ),
           ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
@@ -116,7 +115,7 @@ class _AiAnalysisIllustration extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.illustrationGreen.withOpacity(0.3),
+                  color: AppColors.illustrationGreen.withValues(alpha: 0.3),
                   width: 1.5),
             ),
           ),
@@ -130,7 +129,7 @@ class _AiAnalysisIllustration extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                    color: AppColors.illustrationGreen.withOpacity(0.25),
+                    color: AppColors.illustrationGreen.withValues(alpha: 0.25),
                     blurRadius: 40,
                     offset: const Offset(0, 12)),
               ],
@@ -193,7 +192,7 @@ class _NodeDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)],
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)],
       ),
     );
   }
@@ -229,7 +228,7 @@ class _FindDoctorsIllustration extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                        color: AppColors.illustrationBlue.withOpacity(0.4),
+                        color: AppColors.illustrationBlue.withValues(alpha: 0.4),
                         blurRadius: 24,
                         offset: const Offset(0, 8)),
                   ],
@@ -281,7 +280,7 @@ class _FindDoctorsIllustration extends StatelessWidget {
                 color: (i.isEven
                         ? AppColors.illustrationGreen
                         : AppColors.illustrationAmber)
-                    .withOpacity(0.35),
+                    .withValues(alpha: 0.35),
                 blurRadius: 10,
               ),
             ],
@@ -304,7 +303,7 @@ class _MapGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.illustrationBlue.withOpacity(0.12)
+      ..color = AppColors.illustrationBlue.withValues(alpha: 0.12)
       ..strokeWidth = 1.0;
 
     const step = 40.0;
@@ -324,7 +323,7 @@ class _ShadowEllipsePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.15)
+      ..color = Colors.black.withValues(alpha: 0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawOval(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
@@ -352,7 +351,7 @@ class _HealthHistoryIllustration extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                    color: AppColors.illustrationAmber.withOpacity(0.2),
+                    color: AppColors.illustrationAmber.withValues(alpha: 0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 10)),
               ],
@@ -366,7 +365,7 @@ class _HealthHistoryIllustration extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.illustrationAmber.withOpacity(0.15),
+                        color: AppColors.illustrationAmber.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
@@ -459,7 +458,7 @@ class _StatCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 blurRadius: 16,
                 offset: const Offset(0, 6))
           ],
@@ -615,7 +614,7 @@ class _RecommendCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 8)),
         ],
@@ -626,7 +625,7 @@ class _RecommendCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -652,7 +651,7 @@ class _RecommendCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: color.withOpacity(0.12),
+                    backgroundColor: color.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation(color),
                     minHeight: 5,
                   ),

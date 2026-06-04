@@ -107,6 +107,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       age: age,
       gender: gender,
       createdAt: DateTime.now(),
+      role: 'user',
+      status: 'active',
     );
   }
 
@@ -154,7 +156,6 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     return UserEntity(
       id: authUser.id,
       email: authUser.email ?? profile?['email'] as String? ?? '',
-      // Profile table is the source of truth; fall back to auth metadata
       fullName:
           profile?['full_name'] as String? ?? meta['full_name'] as String?,
       age: (profile?['age'] as num?)?.toInt() ?? (meta['age'] as num?)?.toInt(),
@@ -162,7 +163,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       avatarUrl: profile?['avatar_url'] as String?,
       createdAt: (profile != null && profile['created_at'] != null)
           ? DateTime.tryParse(profile['created_at'] as String) ?? DateTime.now()
-          : (DateTime.tryParse(authUser.createdAt!) ?? DateTime.now()),
+          : DateTime.tryParse(authUser.createdAt) ?? DateTime.now(),
+      role: profile?['role'] as String? ?? 'user',
+      status: profile?['status'] as String? ?? 'active',
     );
   }
 }

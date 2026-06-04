@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide UserEntity;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/datasources/user_profile_datasource.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -15,6 +16,13 @@ import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/symptoms/presentation/screens/symptom_checker_screen.dart';
 import '../../features/symptoms/presentation/symptoms_screen.dart';
+import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/screens/admin_users_screen.dart';
+import '../../features/admin/presentation/screens/admin_analyses_screen.dart';
+import '../../features/admin/presentation/screens/admin_doctors_screen.dart';
+import '../../features/admin/presentation/screens/admin_health_tips_screen.dart';
+import '../../features/admin/presentation/screens/admin_feedback_screen.dart';
+import '../../features/admin/presentation/widgets/admin_shell.dart';
 import '../../shared/widgets/app_shell.dart';
 
 // ─── Route paths ──────────────────────────────────────────────
@@ -32,13 +40,45 @@ class AppRoutes {
   static const String doctors = '/doctors';
   static const String profile = '/profile';
   static const String settings = '/profile/settings';
+
+  // ─── Admin ────────────────────────────────────────────────
+  static const String admin = '/admin';
+  static const String adminUsers = '/admin/users';
+  static const String adminAnalyses = '/admin/analyses';
+  static const String adminDoctors = '/admin/doctors';
+  static const String adminHealthTips = '/admin/health-tips';
+  static const String adminFeedback = '/admin/feedback';
+}
+
+// ─── Router refresh notifier ──────────────────────────────────
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen(authProvider, (_, __) => notifyListeners());
+  }
 }
 
 // ─── Router provider ──────────────────────────────────────────
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = _RouterRefreshNotifier(ref);
+
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final auth = ref.read(authProvider);
+      final loc = state.matchedLocation;
+      final isAdminRoute = loc.startsWith('/admin');
+
+      if (isAdminRoute) {
+        // While auth is still resolving (app cold-start), don't bounce —
+        // the splash only routes here after confirming an admin session.
+        if (auth is AuthInitial || auth is AuthLoading) return null;
+        if (auth is! AuthAuthenticated) return AppRoutes.login;
+        if (!auth.user.isAdmin) return AppRoutes.home;
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -65,7 +105,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             _slideTransitionPage(state, const ForgotPasswordScreen()),
       ),
 
-      // ─── Shell (bottom nav) ─────────────────────────────
+      // ─── Admin shell ──────────────────────────────────────
+      ShellRoute(
+        builder: (_, __, child) => AdminShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.admin,
+            pageBuilder: (_, state) =>
+                const NoTransitionPage(child: AdminDashboardScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminUsers,
+            pageBuilder: (_, state) =>
+                _slideTransitionPage(state, const AdminUsersScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminAnalyses,
+            pageBuilder: (_, state) =>
+                _slideTransitionPage(state, const AdminAnalysesScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminDoctors,
+            pageBuilder: (_, state) =>
+                _slideTransitionPage(state, const AdminDoctorsScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminHealthTips,
+            pageBuilder: (_, state) =>
+                _slideTransitionPage(state, const AdminHealthTipsScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.adminFeedback,
+            pageBuilder: (_, state) =>
+                _slideTransitionPage(state, const AdminFeedbackScreen()),
+          ),
+        ],
+      ),
+
+      // ─── User shell (bottom nav) ───────────────────────────
       StatefulShellRoute.indexedStack(
         pageBuilder: (_, __, shell) => NoTransitionPage(
           child: AppShell(navigationShell: shell),
@@ -86,10 +163,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               routes: [
                 GoRoute(
                   path: 'checker',
-                  pageBuilder: (_, state) => _slideTransitionPage(
-                    state,
-                    const SymptomCheckerScreen(),
-                  ),
+                  pageBuilder: (_, state) =>
+                      _slideTransitionPage(state, const SymptomCheckerScreen()),
                 ),
               ],
             ),
@@ -116,8 +191,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             GoRoute(
               path: AppRoutes.doctors,
               pageBuilder: (_, state) {
-                final specialty =
-                    state.uri.queryParameters['specialty'];
+                final specialty = state.uri.queryParameters['specialty'];
                 return NoTransitionPage(
                   child: DoctorsScreen(recommendedSpecialty: specialty),
                 );
@@ -175,7 +249,8 @@ CustomTransitionPage<void> _slideTransitionPage(
       final offset = Tween(
         begin: const Offset(0.05, 0),
         end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+      ).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
       return FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
         child: SlideTransition(position: offset, child: child),

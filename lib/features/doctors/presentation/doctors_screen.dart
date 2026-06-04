@@ -389,7 +389,7 @@ class _MapView extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
@@ -593,7 +593,7 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
